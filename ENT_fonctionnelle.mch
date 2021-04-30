@@ -17,7 +17,7 @@ PROPERTIES
 SETS
     UE; PERSONNES; VALIDATION_UE = {ue_valide, ue_valide_compensation, ue_non_valide}; VALIDATION_SEMESTRE = {valide, non_valide}; 
     PHASES = {phase_designation_ue, phase_enregistrement_enseignants, phase_inscription_etudiants, phase_verification_etudiants, phase_saisie_notes, phase_jury,            
-    phase_consultation_resultat}
+        phase_consultation_resultat}
     
     
 VARIABLES
@@ -46,8 +46,8 @@ INVARIANT
     nb_enseignant_ue_non_enseigne : NATURAL&
     nb_enseignant_ue_enseigne : NATURAL &
     nb_etudiant_restant : NATURAL &
-    phase_actuelle : FIN(PHASES) 
-
+    phase_actuelle : FIN(PHASES)
+    
     
     
 INITIALISATION
@@ -55,7 +55,7 @@ INITIALISATION
     note, enseignants_ue, responsables_ue := {},{},{} ||
     validations_ue, validations_semestre := {},{} ||
     jury, nb_enseignant_restant, nb_enseignant_ue_non_enseigne, nb_enseignant_ue_enseigne,  nb_etudiant_restant := {directeur}, 5,2,3,2 ||
-    phase_actuelle := {phase_designation_ue}
+    phase_actuelle := {phase_designation_ue} 
     
     
 OPERATIONS
@@ -143,13 +143,13 @@ OPERATIONS
             nb_etudiant_restant := nb_etudiant_restant - 1
         ELSIF (membre : enseignants) & (nb_enseignant_restant > 0) THEN
             IF (membre /: dom(enseignants_ue)) & (nb_enseignant_ue_non_enseigne > 0) THEN
-                   jury := jury \/ {membre} ||
-                   nb_enseignant_restant := nb_enseignant_restant - 1 ||
-                   nb_enseignant_ue_non_enseigne := nb_enseignant_ue_non_enseigne - 1
+                jury := jury \/ {membre} ||
+                nb_enseignant_restant := nb_enseignant_restant - 1 ||
+                nb_enseignant_ue_non_enseigne := nb_enseignant_ue_non_enseigne - 1
             ELSIF (membre : dom(enseignants_ue)) & (nb_enseignant_ue_enseigne > 0) THEN
-                   jury := jury \/ {membre} ||
-                   nb_enseignant_restant := nb_enseignant_restant - 1 ||
-                   nb_enseignant_ue_enseigne := nb_enseignant_ue_enseigne - 1
+                jury := jury \/ {membre} ||
+                nb_enseignant_restant := nb_enseignant_restant - 1 ||
+                nb_enseignant_ue_enseigne := nb_enseignant_ue_enseigne - 1
             END
         END
     END;
@@ -165,7 +165,7 @@ OPERATIONS
             validations_ue := validations_ue \/ {(etu |-> ue |-> note(etu, ue)) |-> ue_valide_compensation} 
         ELSIF note(etu, ue) < 8 THEN
             validations_ue := validations_ue \/ {(etu |-> ue |-> note(etu, ue)) |-> ue_non_valide} 
-        /*ELSE
+            /*ELSE
             note := note \/ {(etu |-> ue) |-> 0} ||
             validations_ue := validations_ue \/ {(etu |-> ue |-> 0) |-> ue_non_valide}*/    /* la preuve ne passe pas encore au prouveur automatique */
         END
@@ -177,14 +177,33 @@ OPERATIONS
         etu : etudiants_inscrits & etu /: dom(validations_semestre) & (!xx.(xx : inscriptions[{etu}] => validations_ue(etu,xx,note(etu,xx)) : VALIDATION_UE)) & 
         phase_actuelle = {phase_jury}
     THEN
-        IF (!xx.(xx : inscriptions[{etu}] => validations_ue(etu,xx,note(etu,xx)) : {ue_valide, ue_valide_compensation})) THEN 
-            validations_semestre := validations_semestre \/ {etu |-> valide}
-        /*ELSIF (SIGMA(xx,yy).(xx : NATURAL & yy : inscriptions[{etu}] & xx = note(etu,yy) | xx)) >= 70  THEN             la syntaxe n'est pas correcte, je voudrais calculer la         
-                                                                                                                          somme des 7 notes et vérifier qu'elle est supérieure à 70
-           validations_semestre := validations_semestre \/ {etu |-> valide}*/
-        ELSE
-            validations_semestre := validations_semestre \/ {etu |-> non_valide}
-        END
+        IF 
+           (!xx.(xx : inscriptions[{etu}] => validations_ue(etu,xx,note(etu,xx)) : {ue_valide, ue_valide_compensation})) 
+        THEN 
+            IF 
+                (!xx.(xx : inscriptions[{etu}] => validations_ue(etu,xx,note(etu,xx)) : {ue_valide}))
+            THEN
+                validations_semestre := validations_semestre \/ {etu |-> valide}
+            ELSIF 
+                (!(ue1,ue2,ue3,ue4,ue5,ue6,ue7).(ue1 : inscriptions[{etu}] & ue2 : inscriptions[{etu}] & ue3 : inscriptions[{etu}] & 
+                ue4 : inscriptions[{etu}] & ue5 : inscriptions[{etu}] & ue6 : inscriptions[{etu}] & ue7 : inscriptions[{etu}] & 
+                card(ue1) = 1 & card(ue2) = 1 & card(ue3) = 1 & card(ue4) = 1 & card(ue5) = 1 & card(ue6) = 1 & card(ue7) = 1
+                => (note(etu,ue1) + note(etu,ue2) + note(etu,ue3) + note(etu,ue4) + note(etu,ue5) + note(etu,ue6) + note(etu,ue7)) >= 70))  
+            THEN
+                 validations_semestre := validations_semestre \/ {etu |-> valide}    
+            END
+         ELSE 
+             IF
+               (!(ue1,ue2,ue3,ue4,ue5,ue6,ue7).(ue1 : inscriptions[{etu}] & ue2 : inscriptions[{etu}] & ue3 : inscriptions[{etu}] & 
+                ue4 : inscriptions[{etu}] & ue5 : inscriptions[{etu}] & ue6 : inscriptions[{etu}] & ue7 : inscriptions[{etu}] & 
+                card(ue1) = 1 & card(ue2) = 1 & card(ue3) = 1 & card(ue4) = 1 & card(ue5) = 1 & card(ue6) = 1 & card(ue7) = 1
+                => (note(etu,ue1) + note(etu,ue2) + note(etu,ue3) + note(etu,ue4) + note(etu,ue5) + note(etu,ue6) + note(etu,ue7)) >= 65))
+             THEN
+                 validations_semestre := validations_semestre \/ {etu |-> valide}
+             ELSE
+                 validations_semestre := validations_semestre \/ {etu |-> non_valide}
+             END
+         END
     END;
     
     
@@ -195,7 +214,7 @@ OPERATIONS
         notes_etu :=  (({etu} <| inscriptions) <| note) <| validations_ue
     END;
     
- 
+    
     validation_semestre_etu <-- Consulter_validation_semestre (etu) = 
     PRE
         etu : dom(validations_semestre) & validation_semestre_etu <: validations_semestre & phase_actuelle = {phase_consultation_resultat}
