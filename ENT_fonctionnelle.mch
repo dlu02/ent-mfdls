@@ -28,6 +28,7 @@ VARIABLES
     note, enseignants_ue, responsables_ue, 
     validations_ue, validations_semestre, 
     jury, nb_enseignant_restant, nb_enseignant_ue_non_enseigne, nb_enseignant_ue_enseigne, nb_etudiant_restant,
+    notes_etu, validation_semestre_etu,
     phase_actuelle
     
     
@@ -47,6 +48,8 @@ INVARIANT
     nb_enseignant_ue_non_enseigne : NATURAL&
     nb_enseignant_ue_enseigne : NATURAL &
     nb_etudiant_restant : NATURAL &
+    notes_etu <: validations_ue &
+    validation_semestre_etu <: validations_semestre &
     phase_actuelle : FIN(PHASES) &
 
     (phase_actuelle = {phase_1_enregistrement_enseignants} => card(ue_ouvertes) > 0) &
@@ -66,6 +69,7 @@ INITIALISATION
     note, enseignants_ue, responsables_ue := {},{},{} ||
     validations_ue, validations_semestre := {},{} ||
     jury, nb_enseignant_restant, nb_enseignant_ue_non_enseigne, nb_enseignant_ue_enseigne,  nb_etudiant_restant := {directeur}, 5,2,3,2 ||
+    notes_etu, validation_semestre_etu := {}, {} ||
     phase_actuelle := {phase_designation_ue} 
     
     
@@ -226,17 +230,17 @@ OPERATIONS
     END;
     
     
-    notes_etu <-- Consulter_notes (etu) = 
+    Consulter_notes (etu) = 
     PRE
-        etu : etudiants_inscrits  & notes_etu <: validations_ue & phase_actuelle = {phase_consultation_resultat}
+        etu : etudiants_inscrits & phase_actuelle = {phase_consultation_resultat}
     THEN
         notes_etu :=  (({etu} <| inscriptions) <| note) <| validations_ue
     END;
     
     
-    validation_semestre_etu <-- Consulter_validation_semestre (etu) = 
+    Consulter_validation_semestre (etu) = 
     PRE
-        etu : dom(validations_semestre) & validation_semestre_etu <: validations_semestre & phase_actuelle = {phase_consultation_resultat}
+        etu : dom(validations_semestre) & phase_actuelle = {phase_consultation_resultat}
     THEN
         validation_semestre_etu :=  {etu} <| validations_semestre
     END
