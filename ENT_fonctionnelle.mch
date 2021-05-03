@@ -18,7 +18,7 @@ PROPERTIES
     
     
 SETS
-    UE = {UE1,UE2,UE3,UE4,UE5,UE6,UE7,UE8,UE9,UE10,UE11}; 
+    UE = {UE1,UE2,UE3,UE4,UE5,UE6,UE7,UE8,UE9,UE10}; 
     PERSONNES = {DIRECTEUR, ENS_1,ENS_2,ENS_3,ENS_4,ENS_5,ENS_6,ENS_7,ENS_8,ENS_9, E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12,E13,E14,E15,E16,E17,E18,E19,E20} ; 
     VALIDATION_UE = {ue_valide, ue_valide_compensation, ue_non_valide}; VALIDATION_SEMESTRE = {valide, non_valide};
     PHASES = {phase_designation_ue, 
@@ -133,7 +133,7 @@ OPERATIONS
     END;
     
     
-    
+    // TODO : régler le problème de range des notes (si on met entre 0 et 20 alors 0 <= note <= 9) sinon on ne valide jamais le semestre
     Ajouter_note (etu, ue, no) =
     PRE 
         etu : etudiants & ue : ue_ouvertes & no : 0..20  & (etu |-> ue) : inscriptions &  (etu |-> ue)  /: dom(note) & phase_actuelle = {phase_saisie_notes}
@@ -184,7 +184,7 @@ OPERATIONS
         END
     END;
         
-    
+    // TODO : une partie de la précondition fait planter ProB
     Validation_ue (etu, ue) =
     PRE
         etu : etudiants & ue : ue_ouvertes & (etu |-> ue) : dom (note) & (etu |-> ue) /: dom(dom(validations_ue)) & phase_actuelle = {phase_2_jury} 
@@ -221,57 +221,31 @@ OPERATIONS
         
     END;
     
-    
+    // TODO  : intégrer la somme des moyennes
     Validation_semestre_etudiant (etu) =
     PRE
         etu : dom(inscriptions) & etu /: dom(validations_semestre) & phase_actuelle = {phase_3_jury}
     THEN
-        /*IF 
-            (!xx.(xx : inscriptions[{etu}] => (etu |-> xx) : dom(dom(validations_ue)) & ran(validations_ue) : {ue_valide, ue_valide_compensation})) 
-        THEN 
-            IF 
-                (!xx.(xx : inscriptions[{etu}] => validations_ue(etu,xx,note(etu,xx)) : {ue_valide}))
-            THEN
-                validations_semestre := validations_semestre \/ {etu |-> valide}
-            ELSIF 
-                (!(ue1,ue2,ue3,ue4,ue5,ue6,ue7).(
-                    ue1 : inscriptions[{etu}] & 
-                    ue2 : (inscriptions[{etu}] - {ue1}) & 
-                    ue3 : (inscriptions[{etu}] - ({ue1} \/ {ue2})) & 
-                    ue4 : (inscriptions[{etu}] - ({ue1} \/ {ue2} \/ {ue3})) & 
-                    ue5 : (inscriptions[{etu}] - ({ue1} \/ {ue2} \/ {ue3} \/ {ue4})) & 
-                    ue6 : (inscriptions[{etu}] - ({ue1} \/ {ue2} \/ {ue3} \/ {ue4} \/ {ue5})) & 
-                    ue7 : (inscriptions[{etu}] - ({ue1} \/ {ue2} \/ {ue3} \/ {ue4} \/ {ue5} \/ {ue6}))
-                    => (note(etu,ue1) + note(etu,ue2) + note(etu,ue3) + note(etu,ue4) + note(etu,ue5) + note(etu,ue6) + note(etu,ue7)) >= 70))  
-            THEN
-                validations_semestre := validations_semestre \/ {etu |-> valide} 
-            END
-            
-        ELSE 
-        IF
-            (!(ue1,ue2,ue3,ue4,ue5,ue6,ue7).(
-                ue1 : inscriptions[{etu}] & 
-                ue2 : (inscriptions[{etu}] - {ue1}) & 
-                ue3 : (inscriptions[{etu}] - ({ue1} \/ {ue2})) & 
-                ue4 : (inscriptions[{etu}] - ({ue1} \/ {ue2} \/ {ue3})) & 
-                ue5 : (inscriptions[{etu}] - ({ue1} \/ {ue2} \/ {ue3} \/ {ue4})) & 
-                ue6 : (inscriptions[{etu}] - ({ue1} \/ {ue2} \/ {ue3} \/ {ue4} \/ {ue5})) & 
-                ue7 : (inscriptions[{etu}] - ({ue1} \/ {ue2} \/ {ue3} \/ {ue4} \/ {ue5} \/ {ue6}))        // 66 équivaut à environ 9.5 moyenne générale
-                => (note(etu,ue1) + note(etu,ue2) + note(etu,ue3) + note(etu,ue4) + note(etu,ue5) + note(etu,ue6) + note(etu,ue7)) >= 66))
-        THEN
-            validations_semestre := validations_semestre \/ {etu |-> valide}
-        ELSE
-            validations_semestre := validations_semestre \/ {etu |-> non_valide}
-        END
-        END*/
         IF
             card(dom(validations_semestre)) = card(etudiants) - 1
         THEN
             phase_actuelle := {phase_consultation_resultat} ||
-            validations_semestre := validations_semestre \/ {etu |-> non_valide}
-        ELSE
-            validations_semestre := validations_semestre \/ {etu |-> non_valide}
-        END
+	IF 
+                	(!xx.(xx : inscriptions[{etu}] => validations_ue(etu,xx,note(etu,xx)) : {ue_valide,ue_valide_compensation}))
+            	THEN
+               		validations_semestre := validations_semestre \/ {etu |-> valide}
+	ELSE
+		validations_semestre := validations_semestre \/ {etu |-> non_valide}
+	END
+       ELSE
+	IF 
+                	(!xx.(xx : inscriptions[{etu}] => validations_ue(etu,xx,note(etu,xx)) : {ue_valide,ue_valide_compensation}))
+            	THEN
+               		validations_semestre := validations_semestre \/ {etu |-> valide}
+	ELSE
+		validations_semestre := validations_semestre \/ {etu |-> non_valide}
+	END
+           END
     END;
     
     
