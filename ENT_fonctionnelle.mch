@@ -133,18 +133,17 @@ OPERATIONS
     END;
     
     
-    // TODO : régler le problème de range des notes (si on met entre 0 et 20 alors 0 <= note <= 9) sinon on ne valide jamais le semestre
-    Ajouter_note (etu, ue, no) =
+    Ajouter_note (etu, ue, no1, no2) =
     PRE 
-        etu : etudiants & ue : ue_ouvertes & no : 0..20  & (etu |-> ue) : inscriptions &  (etu |-> ue)  /: dom(note) & phase_actuelle = {phase_saisie_notes}
+        etu : etudiants & ue : ue_ouvertes & no1 : 0..10 & no2 = no1 & (etu |-> ue) : inscriptions &  (etu |-> ue)  /: dom(note) & phase_actuelle = {phase_saisie_notes}
     THEN 
         IF 
             (!(xx,yy). (xx : dom(inscriptions) & yy : inscriptions[{xx}] & (xx |-> yy) /= (etu |-> ue) =>  (xx |-> yy) : dom (note)))
         THEN 
-            note := note \/ {(etu |-> ue) |-> no} ||
+            note := note \/ {(etu |-> ue) |-> (no1 + no2)} ||
             phase_actuelle := {phase_1_jury}
         ELSE
-            note := note \/ {(etu |-> ue) |-> no}
+            note := note \/ {(etu |-> ue) |-> (no1 + no2)}
         END
         
     END;
@@ -265,3 +264,4 @@ OPERATIONS
     END
     
 END
+
