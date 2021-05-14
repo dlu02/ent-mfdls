@@ -98,12 +98,12 @@ OPERATIONS
     
     Ajouter_responsable_UE (responsable, ue) =
     PRE 
-        ue : ue_ouvertes & responsable : enseignants & (responsable |-> ue) : enseignants_ue & ue /: ran(responsables_ue)  &
+        ue : ue_ouvertes & responsable : enseignants & (responsable |-> ue) : enseignants_ue & ue /: ran(responsables_ue) &
         phase_actuelle = {phase_2_enregistrement_enseignants}
     THEN 
         responsables_ue := responsables_ue \/ {responsable |-> ue} ||
         IF 
-            (!xx. (xx : ran(responsables_ue) & xx /= ue => card(responsables_ue~[{xx}]) = 1))        // TODO : OP non vérifiée
+            (!xx. (xx : ran(responsables_ue) & xx /= ue => card(responsables_ue~[{xx}]) = 1))
         THEN
             phase_actuelle := {phase_inscription_etudiants}
         END
@@ -131,10 +131,8 @@ OPERATIONS
     
     Ajouter_note (etu, ue, no) =
     PRE 
-        !etu. (etu : dom(inscriptions) => card(inscriptions[{etu}]) = 7) &
-        etu : etudiants & ue : ue_ouvertes &  (etu |-> ue) : inscriptions & (etu |-> ue) /: dom(note)  & no : 0..20 &
-        phase_actuelle = {phase_saisie_notes} &
-        card(jury) = 1
+        etu : etudiants & ue : ue_ouvertes &  (etu |-> ue) : inscriptions & (etu |-> ue) /: dom(note)  & no : 0..20 & card(jury) = 1 &
+        phase_actuelle = {phase_saisie_notes}
     THEN 
         IF 
             (!(xx,yy). (xx : dom(inscriptions) & yy : inscriptions[{xx}] & (xx |-> yy) /= (etu |-> ue) =>  (xx |-> yy) : dom (note)))
@@ -152,7 +150,6 @@ OPERATIONS
     PRE 
         membre : PERSONNES & 
         membre /: jury & 
-        card(jury) <= 8 &
         (card(jury) >= 2  => !(etu,ue). (etu : dom(inscriptions) & ue : inscriptions[{etu}] => (etu |-> ue: dom(note)))) &
         (membre : enseignants => nb_etudiant_restant = 0) &
         (membre : etudiants => membre : dom(inscriptions) & 
@@ -265,14 +262,14 @@ OPERATIONS
                 (!ue.(ue : inscriptions[{etu}] => validations_ue(etu,ue,note(etu,ue)) : {ue_valide,ue_valide_compensation}))
             THEN
                 IF
-                    SIGMA (ue).(ue:inscriptions[{etu}] | note(etu,ue)) >= 66                                // l'étudiant à plus de 9.5 de moyenne générale  
-                                                                                                            // et toutes ses UE sont validées ou compensées
+                    SIGMA (ue).(ue:inscriptions[{etu}] | note(etu,ue)) >= 66   
+                                                                                                            
                 THEN
                     validations_semestre := validations_semestre \/ {etu |-> valide}
                 ELSE
                     validations_semestre := validations_semestre \/ {etu |-> non_valide}
                 END
-            ELSE                                                                               // si l'étudiant à au moins une UE non_valide alors le semestre n'est pas validé
+            ELSE
                     validations_semestre := validations_semestre \/ {etu |-> non_valide}  
             END
         END
