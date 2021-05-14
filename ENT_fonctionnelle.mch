@@ -6,22 +6,16 @@
 MACHINE
     ENT_fonctionnelle
     
+
+SEES 
+    ENT_data
+ 
     
-CONSTANTS 
-    liste_ue, etudiants, enseignants, directeur
-     
-     
 PROPERTIES
     etudiants = {E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12,E13,E14,E15,E16,E17,E18,E19,E20} & 
     enseignants = {ENS_1,ENS_2,ENS_3,ENS_4,ENS_5,ENS_6,ENS_7,ENS_8,ENS_9} & 
     directeur = {DIRECTEUR} & 
     liste_ue = UE
-    
-    
-SETS
-    UE = {UE1,UE2,UE3,UE4,UE5,UE6,UE7,UE8,UE9,UE10}; 
-    PERSONNES = {DIRECTEUR, ENS_1,ENS_2,ENS_3,ENS_4,ENS_5,ENS_6,ENS_7,ENS_8,ENS_9, E1,E2,E3,E4,E5,E6,E7,E8,E9,E10,E11,E12,E13,E14,E15,E16,E17,E18,E19,E20, none} ; 
-    VALIDATION_UE = {ue_valide, ue_valide_compensation, ue_non_valide}; VALIDATION_SEMESTRE = {valide, non_valide}
     
     
 VARIABLES
@@ -159,14 +153,14 @@ OPERATIONS
     
     Validation_semestre_etudiant (etu) =
     PRE
-        etu : etudiants & etu /: dom(validations_semestre) &
+        etu : etudiants & etu /: dom(validations_semestre) & !(ue).(ue:inscriptions[{etu}] => (etu |-> ue) : dom (note)) &
         !(etu,ue). (etu : etudiants & ue : inscriptions[{etu}] & (etu |-> ue) : dom (note) => (etu |-> ue |-> note(etu, ue)) :  dom (validations_ue)) & card(jury) = 8
     THEN
         IF 
             (!ue.(ue : inscriptions[{etu}] => validations_ue(etu,ue,note(etu,ue)) : {ue_valide,ue_valide_compensation}))
         THEN
             IF
-                SIGMA (ue).(ue:inscriptions[{etu}] | note(etu,ue)) >= 66       // TODO : OP non vérifié // l'étudiant à plus de 9.5 de moyenne générale  
+                SIGMA (ue).(ue:inscriptions[{etu}] | note(etu,ue)) >= 66                                // l'étudiant à plus de 9.5 de moyenne générale  
                                                                                                         // et toutes ses UE sont validées ou compensées
             THEN
                 validations_semestre := validations_semestre \/ {etu |-> valide}
