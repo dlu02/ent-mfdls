@@ -17,7 +17,8 @@ SETS
     consulter_note_etu : un étudiant peut consulter les notes des UE auxquelles il est inscrit
     consulter_respo_ue : un responsable d'UE peut consulter les notes de tous les étudiants inscrits aux UEs dont-il est le responsable */
     
-    PERMISSIONS = {consulter_note_promo, consulter_note_etu, consulter_note_respo_ue , saisir_resultat_semestre, saisir_note_ue, consulter_validation_promo, consulter_validation_etu}       
+    PERMISSIONS = {consulter_note_promo, consulter_note_etu, consulter_note_respo_ue , saisir_resultat_semestre, saisir_note_ue, consulter_validation_promo, 
+    consulter_validation_etu}       
     
     
 VARIABLES
