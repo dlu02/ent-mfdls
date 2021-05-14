@@ -63,14 +63,14 @@ OPERATIONS
     PRE 
         ue : ue_ouvertes & enseignant : enseignants & ((enseignant |-> ue) /: enseignants_ue) & card(ue_ouvertes) >= 7 & enseignant /: {ENS_8, ENS_9}
     THEN 
-        enseignants_ue := enseignants_ue \/ {(enseignant |-> ue)}
+        enseignants_ue := enseignants_ue \/ {(enseignant |-> ue)}      // ENS_8 et ENS_9 ne doivent pas enseignés l'une des UE ouvertes, afin d'être dans le jury
     END;
     
     
     Ajouter_responsable_UE (responsable, ue) =
     PRE 
-        ue : ue_ouvertes & responsable : enseignants & (responsable |-> ue) : enseignants_ue & ue /: ran(responsables_ue) & 
-        !ue. (ue : ue_ouvertes => card(enseignants_ue~[{ue}]) > 0)
+        ue : ue_ouvertes & responsable : enseignants & (responsable |-> ue) : enseignants_ue & 
+        ue /: ran(responsables_ue) & !ue. (ue : ue_ouvertes => card(enseignants_ue~[{ue}]) > 0)
     THEN 
         responsables_ue := responsables_ue \/ {responsable |-> ue}
     END;
@@ -93,7 +93,6 @@ OPERATIONS
     END;
     
     
-    // TODO : ajouter les 3 enseignants des UE les plus suivies
     Ajout_membre_jury (membre) = 
     PRE 
         membre : PERSONNES & 
@@ -160,8 +159,8 @@ OPERATIONS
             (!ue.(ue : inscriptions[{etu}] => validations_ue(etu,ue,note(etu,ue)) : {ue_valide,ue_valide_compensation}))
         THEN
             IF
-                SIGMA (ue).(ue:inscriptions[{etu}] | note(etu,ue)) >= 66                                // l'étudiant à plus de 9.5 de moyenne générale  
-                                                                                                        // et toutes ses UE sont validées ou compensées
+                SIGMA (ue).(ue:inscriptions[{etu}] | note(etu,ue)) >= 66                                /* l'étudiant à plus de 9.5 de moyenne générale  
+                                                                                                           et toutes ses UE sont validées ou compensées */
             THEN
                 validations_semestre := validations_semestre \/ {etu |-> valide}
             ELSE
