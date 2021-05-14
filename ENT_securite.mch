@@ -24,12 +24,7 @@ VARIABLES
 INVARIANT
     PermissionAssignement : ROLES <-> PERMISSIONS
     
-    
-DEFINITIONS
-    
-    currentRole == (Session[{currentUser}])
-    
-    
+            
 INITIALISATION    
     
     PermissionAssignement := 
@@ -133,20 +128,19 @@ OPERATIONS
         consulter_note_promo : PermissionAssignement[Session[{currentUser}]] or
         consulter_note_respo_ue : PermissionAssignement[Session[{currentUser}]])
     THEN
-        IF consulter_note_etu : PermissionAssignement[Session[{currentUser}]]
+        IF 
+            consulter_note_etu : PermissionAssignement[Session[{currentUser}]]
         THEN
             notes_etu :=  (({currentUser} <| inscriptions) <| note) <| validations_ue
-            
-        ELSIF consulter_note_promo : PermissionAssignement[Session[{currentUser}]]
+        ELSIF 
+            consulter_note_promo : PermissionAssignement[Session[{currentUser}]]
         THEN
-            notes_etu := note <| validations_ue
-            
-        ELSIF consulter_note_respo_ue : PermissionAssignement[Session[{currentUser}]]
+            notes_etu := note <| validations_ue 
+        ELSIF 
+            consulter_note_respo_ue : PermissionAssignement[Session[{currentUser}]]
         THEN
-            notes_etu :=  ((inscriptions |> responsables_ue[{currentUser}]) <| note) <| validations_ue
-            
-        END
-        
+            notes_etu :=  ((inscriptions |> responsables_ue[{currentUser}]) <| note) <| validations_ue  
+        END   
     END;
     
     
@@ -156,11 +150,13 @@ OPERATIONS
         (consulter_validation_etu : PermissionAssignement[Session[{currentUser}]] or
         consulter_validation_promo : PermissionAssignement[Session[{currentUser}]])
     THEN 
-        IF consulter_validation_etu : PermissionAssignement[Session[{currentUser}]]
+        IF 
+            consulter_validation_etu : PermissionAssignement[Session[{currentUser}]]
         THEN
             validation_semestre_etu :=  {currentUser} <| validations_semestre
             
-        ELSIF consulter_validation_promo : PermissionAssignement[Session[{currentUser}]]
+        ELSIF 
+            consulter_validation_promo : PermissionAssignement[Session[{currentUser}]]
         THEN
             validation_semestre_etu :=  validations_semestre
         END     
